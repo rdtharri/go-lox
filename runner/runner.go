@@ -43,15 +43,14 @@ func (r *LoxRunner) run(program string) {
 	}
 
 	r.Parser = NewParser(r.Scanner.Tokens, r)
-	defer func() {
-		if r := recover(); r != nil {
-			fmt.Println(r)
-		}
-	}()
 	exp := r.Parser.parse()
 
 	printer := &PrinterVistor{}
 	printer.print(exp)
+
+	interpreter := &Interpreter{}
+	value := interpreter.interpret(exp)
+	fmt.Println("Value: ", value)
 }
 
 func (r *LoxRunner) error(line int, message string) {

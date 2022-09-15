@@ -51,4 +51,5 @@ func (pv *PrinterVistor) print(exp Expression) {
 	for _, message := range pv.Messages {
 		fmt.Print(message)
 	}
+	fmt.Print("\n")
 }

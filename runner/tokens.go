@@ -80,7 +80,7 @@ var KeyMap = map[string]TokenType{
 type Token struct {
 	Type   TokenType
 	Lexeme string
-	Value  string
+	Value  interface{}
 	Line   int
 }
 

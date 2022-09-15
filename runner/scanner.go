@@ -1,5 +1,9 @@
 package runner
 
+import (
+	"strconv"
+)
+
 type Scanner struct {
 	Source string
 	Tokens []Token
@@ -200,25 +204,39 @@ func (s *Scanner) identifier() {
 }
 
 func (s *Scanner) addNullToken(ttype TokenType) {
-	s.Tokens = append(
-		s.Tokens,
+	s.appendToken(
 		Token{
 			Type:   ttype,
 			Lexeme: string(s.Source[(s.start):(s.current)]),
-			Value:  "",
+			Value:  nil,
 			Line:   s.line,
 		},
 	)
 }
 
 func (s *Scanner) addValueToken(ttype TokenType, value string) {
-	s.Tokens = append(
-		s.Tokens,
-		Token{
-			Type:   ttype,
-			Lexeme: string(s.Source[(s.start):(s.current)]),
-			Value:  value,
-			Line:   s.line,
-		},
-	)
+	newToken := Token{
+		Type:   ttype,
+		Lexeme: string(s.Source[(s.start):(s.current)]),
+		Line:   s.line,
+	}
+
+	switch ttype {
+	case NUMBER:
+		numVal, err := strconv.ParseFloat(value, 64)
+		if err != nil {
+			// Not sure how to hit this or what should happen
+			// TODO: add better panic-recover to scanner
+			panic(err)
+		}
+		newToken.Value = numVal
+	case STRING:
+		newToken.Value = value
+	}
+
+	s.appendToken(newToken)
+}
+
+func (s *Scanner) appendToken(token Token) {
+	s.Tokens = append(s.Tokens, token)
 }

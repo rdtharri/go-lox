@@ -8,7 +8,7 @@ type ExpressionVisitor interface {
 }
 
 type Expression interface {
-	Accept(ExpressionVisitor)
+	Accept(ExpressionVisitor) interface{}
 }
 
 type BinaryExpression struct {
@@ -17,16 +17,16 @@ type BinaryExpression struct {
 	Right    Expression
 }
 
-func (be *BinaryExpression) Accept(v ExpressionVisitor) {
-	v.VisitBinaryExpression(be)
+func (be *BinaryExpression) Accept(v ExpressionVisitor) interface{} {
+	return v.VisitBinaryExpression(be)
 }
 
 type GroupingExpression struct {
 	Expression Expression
 }
 
-func (ge *GroupingExpression) Accept(v ExpressionVisitor) {
-	v.VisitGroupingExpression(ge)
+func (ge *GroupingExpression) Accept(v ExpressionVisitor) interface{} {
+	return v.VisitGroupingExpression(ge)
 }
 
 type UnaryExpression struct {
@@ -34,14 +34,14 @@ type UnaryExpression struct {
 	Right    Expression
 }
 
-func (ge *UnaryExpression) Accept(v ExpressionVisitor) {
-	v.VisitUnaryExpression(ge)
+func (ge *UnaryExpression) Accept(v ExpressionVisitor) interface{} {
+	return v.VisitUnaryExpression(ge)
 }
 
 type LiteralExpression struct {
 	Token Token
 }
 
-func (ge *LiteralExpression) Accept(v ExpressionVisitor) {
-	v.VisitLiteralExpression(ge)
+func (ge *LiteralExpression) Accept(v ExpressionVisitor) interface{} {
+	return v.VisitLiteralExpression(ge)
 }

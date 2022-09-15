@@ -2,6 +2,7 @@ package runner
 
 import (
 	"errors"
+	"fmt"
 )
 
 type Parser struct {
@@ -157,6 +158,11 @@ func (p *Parser) peek() Token {
 }
 
 func (p *Parser) parse() Expression {
+	defer func() {
+		if r := recover(); r != nil {
+			fmt.Println(r)
+		}
+	}()
 	return p.expression()
 }
 
