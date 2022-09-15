@@ -9,6 +9,7 @@ import (
 type LoxRunner struct {
 	HadError bool
 	Scanner  *Scanner
+	Parser   *Parser
 }
 
 func (r *LoxRunner) RunFile(path string) {
@@ -41,23 +42,15 @@ func (r *LoxRunner) run(program string) {
 		fmt.Println(token.ToString())
 	}
 
-	// TODO: remove
+	r.Parser = NewParser(r.Scanner.Tokens, r)
+	defer func() {
+		if r := recover(); r != nil {
+			fmt.Println(r)
+		}
+	}()
+	exp := r.Parser.parse()
+
 	printer := &PrinterVistor{}
-	exp := &BinaryExpression{
-		Operator: Token{
-			Lexeme: "*",
-		},
-		Left: &LiteralExpression{
-			Token: Token{
-				Lexeme: "500",
-			},
-		},
-		Right: &LiteralExpression{
-			Token: Token{
-				Lexeme: "200",
-			},
-		},
-	}
 	printer.print(exp)
 }
 
@@ -68,4 +61,12 @@ func (r *LoxRunner) error(line int, message string) {
 func (r *LoxRunner) report(line int, where string, message string) {
 	fmt.Printf("[line %v] Error %v: %v\n", line, where, message)
 	r.HadError = true
+}
+
+func (r *LoxRunner) tokenError(token Token, message string) {
+	if token.Type == EOF {
+		r.report(token.Line, " at end", message)
+	} else {
+		r.report(token.Line, " at '"+token.Lexeme+"'", message)
+	}
 }
