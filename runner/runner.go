@@ -40,6 +40,25 @@ func (r *LoxRunner) run(program string) {
 	for _, token := range r.Scanner.Tokens {
 		fmt.Println(token.ToString())
 	}
+
+	// TODO: remove
+	printer := &PrinterVistor{}
+	exp := &BinaryExpression{
+		Operator: Token{
+			Lexeme: "*",
+		},
+		Left: &LiteralExpression{
+			Token: Token{
+				Lexeme: "500",
+			},
+		},
+		Right: &LiteralExpression{
+			Token: Token{
+				Lexeme: "200",
+			},
+		},
+	}
+	printer.print(exp)
 }
 
 func (r *LoxRunner) error(line int, message string) {
