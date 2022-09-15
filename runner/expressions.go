@@ -1,10 +1,10 @@
 package runner
 
 type ExpressionVisitor interface {
-	VisitBinaryExpression(*BinaryExpression)
-	VisitGroupingExpression(*GroupingExpression)
-	VisitLiteralExpression(*LiteralExpression)
-	VisitUnaryExpression(*UnaryExpression)
+	VisitBinaryExpression(*BinaryExpression) interface{}
+	VisitGroupingExpression(*GroupingExpression) interface{}
+	VisitLiteralExpression(*LiteralExpression) interface{}
+	VisitUnaryExpression(*UnaryExpression) interface{}
 }
 
 type Expression interface {

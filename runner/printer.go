@@ -26,20 +26,24 @@ func (pv *PrinterVistor) paren(leader string, args ...Expression) {
 	pv.appendMessage(" )")
 }
 
-func (pv *PrinterVistor) VisitBinaryExpression(be *BinaryExpression) {
+func (pv *PrinterVistor) VisitBinaryExpression(be *BinaryExpression) interface{} {
 	pv.paren(be.Operator.Lexeme, be.Left, be.Right)
+	return nil
 }
 
-func (pv *PrinterVistor) VisitGroupingExpression(ge *GroupingExpression) {
+func (pv *PrinterVistor) VisitGroupingExpression(ge *GroupingExpression) interface{} {
 	pv.paren("", ge.Expression)
+	return nil
 }
 
-func (pv *PrinterVistor) VisitLiteralExpression(le *LiteralExpression) {
+func (pv *PrinterVistor) VisitLiteralExpression(le *LiteralExpression) interface{} {
 	pv.appendMessage(" " + le.Token.Lexeme + " ")
+	return nil
 }
 
-func (pv *PrinterVistor) VisitUnaryExpression(ue *UnaryExpression) {
+func (pv *PrinterVistor) VisitUnaryExpression(ue *UnaryExpression) interface{} {
 	pv.paren(ue.Operator.Lexeme, ue.Right)
+	return nil
 }
 
 func (pv *PrinterVistor) print(exp Expression) {
