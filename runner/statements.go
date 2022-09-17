@@ -3,6 +3,7 @@ package runner
 type StatementVisitor interface {
 	VisitExpressionStatement(*ExpressionStatement)
 	VisitPrintStatement(*PrintStatement)
+	VisitVarStatement(*VarStatement)
 }
 
 type Statement interface {
@@ -23,4 +24,13 @@ type PrintStatement struct {
 
 func (ps *PrintStatement) Accept(v StatementVisitor) {
 	v.VisitPrintStatement(ps)
+}
+
+type VarStatement struct {
+	Name Token
+	Initializer Expression
+}
+
+func (vs *VarStatement) Accept(v StatementVisitor) {
+	v.VisitVarStatement(vs)
 }

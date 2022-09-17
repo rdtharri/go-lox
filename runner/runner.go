@@ -38,15 +38,11 @@ func (r *LoxRunner) RunPrompt() {
 func (r *LoxRunner) run(program string) {
 	r.Scanner = NewScanner(program, r)
 	r.Scanner.ScanTokens()
-	for _, token := range r.Scanner.Tokens {
-		fmt.Println(token.ToString())
-	}
 
 	r.Parser = NewParser(r.Scanner.Tokens, r)
 	stmts := r.Parser.parse()
 
-
-	interpreter := &Interpreter{}
+	interpreter := NewInterpreter()
 	interpreter.interpret(stmts)
 }
 

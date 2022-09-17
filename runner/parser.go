@@ -6,9 +6,9 @@ import (
 )
 
 type Parser struct {
-	Tokens []Token
+	Tokens  []Token
 	current int
-	Runner *LoxRunner
+	Runner  *LoxRunner
 }
 
 func NewParser(tokens []Token, runner *LoxRunner) *Parser {
@@ -17,7 +17,6 @@ func NewParser(tokens []Token, runner *LoxRunner) *Parser {
 	parser.Runner = runner
 	return parser
 }
-
 
 func (p *Parser) expression() Expression {
 	return p.equality()
@@ -29,8 +28,8 @@ func (p *Parser) equality() Expression {
 	for p.match(BANG_EQUAL, EQUAL_EQUAL) {
 		expr = &BinaryExpression{
 			Operator: p.previous(),
-			Left: expr,
-			Right: p.comparison(),
+			Left:     expr,
+			Right:    p.comparison(),
 		}
 	}
 
@@ -43,8 +42,8 @@ func (p *Parser) comparison() Expression {
 	for p.match(GREATER, GREATER_EQUAL, LESS, LESS_EQUAL) {
 		expr = &BinaryExpression{
 			Operator: p.previous(),
-			Left: expr,
-			Right: p.term(),
+			Left:     expr,
+			Right:    p.term(),
 		}
 	}
 
@@ -57,8 +56,8 @@ func (p *Parser) term() Expression {
 	for p.match(MINUS, PLUS) {
 		expr = &BinaryExpression{
 			Operator: p.previous(),
-			Left: expr,
-			Right: p.factor(),
+			Left:     expr,
+			Right:    p.factor(),
 		}
 	}
 
@@ -71,8 +70,8 @@ func (p *Parser) factor() Expression {
 	for p.match(SLASH, STAR) {
 		expr = &BinaryExpression{
 			Operator: p.previous(),
-			Left: expr,
-			Right: p.unary(),
+			Left:     expr,
+			Right:    p.unary(),
 		}
 	}
 
@@ -83,7 +82,7 @@ func (p *Parser) unary() Expression {
 	if p.match(BANG, MINUS) {
 		return &UnaryExpression{
 			Operator: p.previous(),
-			Right: p.unary(),
+			Right:    p.unary(),
 		}
 	}
 	return p.primary()
@@ -104,8 +103,13 @@ func (p *Parser) primary() Expression {
 		}
 	}
 
+	if p.match(IDENTIFIER) {
+		return &VarExpression{
+			Name: p.previous(),
+		}
+	}
 
-	panic(p.error(p.peek(),"Unexpected token"))
+	panic(p.error(p.peek(), "Unexpected token"))
 }
 
 func (p *Parser) consume(ttype TokenType, message string) Token {
@@ -113,12 +117,12 @@ func (p *Parser) consume(ttype TokenType, message string) Token {
 		return p.advance()
 	}
 
-	panic(p.error(p.peek(),message))
+	panic(p.error(p.peek(), message))
 }
 
 func (p *Parser) error(token Token, message string) error {
 	p.Runner.tokenError(token, message)
-	return  errors.New(message)
+	return errors.New(message)
 }
 
 func (p *Parser) match(checks ...TokenType) bool {
@@ -132,7 +136,7 @@ func (p *Parser) match(checks ...TokenType) bool {
 }
 
 func (p *Parser) previous() Token {
-	return p.Tokens[p.current - 1]
+	return p.Tokens[p.current-1]
 }
 
 func (p *Parser) check(ttype TokenType) bool {
@@ -163,14 +167,44 @@ func (p *Parser) parse() []Statement {
 			fmt.Println(r)
 		}
 	}()
-	statements := make([]Statement,0)
+	statements := make([]Statement, 0)
 	for !p.isAtEnd() {
 		statements = append(
 			statements,
-			p.statement(),
+			p.declaration(),
 		)
 	}
 	return statements
+}
+
+func (p *Parser) declaration() Statement {
+	defer func() {
+		if r := recover(); r != nil {
+			p.synchronize()
+		}
+	}()
+
+	if p.match(VAR) {
+		return p.varDeclaration()
+	}
+
+	return p.statement()
+}
+
+func (p *Parser) varDeclaration() Statement {
+	name := p.consume(IDENTIFIER, "Expect variable name.")
+
+	var initializer Expression
+	if p.match(EQUAL) {
+		initializer = p.expression()
+	}
+
+	p.consume(SEMICOLON, "Expect ';' after declaration")
+
+	return &VarStatement{
+		Name:        name,
+		Initializer: initializer,
+	}
 }
 
 func (p *Parser) statement() Statement {

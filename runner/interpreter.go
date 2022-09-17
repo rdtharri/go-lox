@@ -4,7 +4,15 @@ import (
 	"fmt"
 )
 
-type Interpreter struct{}
+type Interpreter struct{
+	Environment Environment
+}
+
+func NewInterpreter() Interpreter {
+	return Interpreter{
+		Environment: NewEnvironment(),
+	}
+}
 
 func (i *Interpreter) interpret(stmts []Statement) {
 	defer func() {
@@ -25,13 +33,26 @@ func (i *Interpreter) evaluate(exp Expression) interface{} {
 	return exp.Accept(i)
 }
 
+func (i *Interpreter) VisitVarStatement(vs *VarStatement) {
+	var value interface{}
+	if vs.Initializer != nil {
+		value = i.evaluate(vs.Initializer)
+	}
+
+	i.Environment.Define(vs.Name.Lexeme, value)
+}
+
 func (i *Interpreter) VisitPrintStatement(ps *PrintStatement) {
 	value := i.evaluate(ps.Expression)
 	fmt.Println(value)
 }
 
-func (i *Interpreter) VisitExpressionStatement(ps *ExpressionStatement) {
-	i.evaluate(ps.Expression)
+func (i *Interpreter) VisitExpressionStatement(es *ExpressionStatement) {
+	i.evaluate(es.Expression)
+}
+
+func (i *Interpreter) VisitVarExpression(ve *VarExpression) interface{} {
+	return i.Environment.Get(ve.Name.Lexeme)
 }
 
 func (i *Interpreter) VisitBinaryExpression(be *BinaryExpression) interface{} {
