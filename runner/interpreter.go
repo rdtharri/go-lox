@@ -6,18 +6,37 @@ import (
 
 type Interpreter struct{}
 
-func (i *Interpreter) interpret(exp Expression) interface{} {
+func (i *Interpreter) interpret(stmts []Statement) {
 	defer func() {
 		if r := recover(); r != nil {
 			fmt.Println(r)
 		}
 	}()
+	for _, stmt := range stmts {
+		i.execute(stmt)
+	}
+}
+
+func (i *Interpreter) execute(stmt Statement) {
+	stmt.Accept(i)
+}
+
+func (i *Interpreter) evaluate(exp Expression) interface{} {
 	return exp.Accept(i)
 }
 
+func (i *Interpreter) VisitPrintStatement(ps *PrintStatement) {
+	value := i.evaluate(ps.Expression)
+	fmt.Println(value)
+}
+
+func (i *Interpreter) VisitExpressionStatement(ps *ExpressionStatement) {
+	i.evaluate(ps.Expression)
+}
+
 func (i *Interpreter) VisitBinaryExpression(be *BinaryExpression) interface{} {
-	left := i.interpret(be.Left)
-	right := i.interpret(be.Right)
+	left := i.evaluate(be.Left)
+	right := i.evaluate(be.Right)
 
 	validateNum := func() (float64,float64) {
 		return validateOperands[float64](
@@ -73,7 +92,7 @@ func (i *Interpreter) VisitBinaryExpression(be *BinaryExpression) interface{} {
 }
 
 func (i *Interpreter) VisitGroupingExpression(ge *GroupingExpression) interface{} {
-	return i.interpret(ge.Expression)
+	return i.evaluate(ge.Expression)
 }
 
 func (i *Interpreter) VisitLiteralExpression(le *LiteralExpression) interface{} {
@@ -81,7 +100,7 @@ func (i *Interpreter) VisitLiteralExpression(le *LiteralExpression) interface{} 
 }
 
 func (i *Interpreter) VisitUnaryExpression(ue *UnaryExpression) interface{} {
-	right := i.interpret(ue.Right)
+	right := i.evaluate(ue.Right)
 
 	switch ue.Operator.Type {
 	case MINUS:

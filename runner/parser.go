@@ -157,13 +157,43 @@ func (p *Parser) peek() Token {
 	return p.Tokens[p.current]
 }
 
-func (p *Parser) parse() Expression {
+func (p *Parser) parse() []Statement {
 	defer func() {
 		if r := recover(); r != nil {
 			fmt.Println(r)
 		}
 	}()
-	return p.expression()
+	statements := make([]Statement,0)
+	for !p.isAtEnd() {
+		statements = append(
+			statements,
+			p.statement(),
+		)
+	}
+	return statements
+}
+
+func (p *Parser) statement() Statement {
+	if p.match(PRINT) {
+		return p.printStatement()
+	}
+	return p.expressionStatement()
+}
+
+func (p *Parser) printStatement() Statement {
+	value := p.expression()
+	p.consume(SEMICOLON, "Expect ';' after value.")
+	return &PrintStatement{
+		Expression: value,
+	}
+}
+
+func (p *Parser) expressionStatement() Statement {
+	value := p.expression()
+	p.consume(SEMICOLON, "Expect ';' after value.")
+	return &ExpressionStatement{
+		Expression: value,
+	}
 }
 
 func (p *Parser) synchronize() {
