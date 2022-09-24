@@ -19,7 +19,27 @@ func NewParser(tokens []Token, runner *LoxRunner) *Parser {
 }
 
 func (p *Parser) expression() Expression {
-	return p.equality()
+	return p.assignment()
+}
+
+func (p *Parser) assignment() Expression {
+	expr := p.equality()
+
+	if p.match(EQUAL) {
+		equals := p.previous()
+		value := p.assignment()
+
+		if varExp, ok := expr.(*VarExpression); ok {
+			return &AssignExpression{
+				Name: varExp.Name,
+				Value: value,
+			}
+		}
+
+		p.error(equals, "Invalid assignment target")
+	}
+
+	return expr
 }
 
 func (p *Parser) equality() Expression {
@@ -207,9 +227,28 @@ func (p *Parser) varDeclaration() Statement {
 	}
 }
 
+func (p *Parser) block() []Statement {
+	statements := make([]Statement,0)
+
+	for !p.check(RIGHT_BRACE) && !p.isAtEnd() {
+		statements = append(
+			statements,
+			p.declaration(),
+		)
+	}
+
+	p.consume(RIGHT_BRACE, "Expect '}' after block")
+	return statements
+}
+
 func (p *Parser) statement() Statement {
 	if p.match(PRINT) {
 		return p.printStatement()
+	}
+	if p.match(LEFT_BRACE) {
+		return &BlockStatement{
+			Statements: p.block(),
+		}
 	}
 	return p.expressionStatement()
 }

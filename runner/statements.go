@@ -4,6 +4,7 @@ type StatementVisitor interface {
 	VisitExpressionStatement(*ExpressionStatement)
 	VisitPrintStatement(*PrintStatement)
 	VisitVarStatement(*VarStatement)
+	VisitBlockStatement(*BlockStatement)
 }
 
 type Statement interface {
@@ -33,4 +34,12 @@ type VarStatement struct {
 
 func (vs *VarStatement) Accept(v StatementVisitor) {
 	v.VisitVarStatement(vs)
+}
+
+type BlockStatement struct {
+	Statements []Statement
+}
+
+func (bs *BlockStatement) Accept(v StatementVisitor) {
+	v.VisitBlockStatement(bs)
 }

@@ -6,6 +6,7 @@ type ExpressionVisitor interface {
 	VisitLiteralExpression(*LiteralExpression) interface{}
 	VisitUnaryExpression(*UnaryExpression) interface{}
 	VisitVarExpression(*VarExpression) interface{}
+	VisitAssignExpression(*AssignExpression) interface{}
 }
 
 type Expression interface {
@@ -53,4 +54,13 @@ type VarExpression struct {
 
 func (ve *VarExpression) Accept(v ExpressionVisitor) interface{} {
 	return v.VisitVarExpression(ve)
+}
+
+type AssignExpression struct {
+	Name Token
+	Value Expression
+}
+
+func (ae *AssignExpression) Accept(v ExpressionVisitor) interface{} {
+	return v.VisitAssignExpression(ae)
 }

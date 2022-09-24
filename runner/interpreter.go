@@ -5,12 +5,12 @@ import (
 )
 
 type Interpreter struct{
-	Environment Environment
+	Environment *Environment
 }
 
 func NewInterpreter() Interpreter {
 	return Interpreter{
-		Environment: NewEnvironment(),
+		Environment: NewEnvironment(nil),
 	}
 }
 
@@ -27,6 +27,22 @@ func (i *Interpreter) interpret(stmts []Statement) {
 
 func (i *Interpreter) execute(stmt Statement) {
 	stmt.Accept(i)
+}
+
+func (i *Interpreter) executeBlock(statements []Statement, env *Environment) {
+	previous := i.Environment
+	defer func() {
+		if r:= recover(); r != nil {
+			fmt.Println(r)
+		}
+		i.Environment = previous
+	}()
+
+	i.Environment = env
+
+	for _, stmt := range statements {
+		i.execute(stmt)
+	}
 }
 
 func (i *Interpreter) evaluate(exp Expression) interface{} {
@@ -49,6 +65,10 @@ func (i *Interpreter) VisitPrintStatement(ps *PrintStatement) {
 
 func (i *Interpreter) VisitExpressionStatement(es *ExpressionStatement) {
 	i.evaluate(es.Expression)
+}
+
+func (i *Interpreter) VisitBlockStatement(bs *BlockStatement) {
+	i.executeBlock(bs.Statements, NewEnvironment(i.Environment))
 }
 
 func (i *Interpreter) VisitVarExpression(ve *VarExpression) interface{} {
@@ -135,6 +155,12 @@ func (i *Interpreter) VisitUnaryExpression(ue *UnaryExpression) interface{} {
 	}
 
 	return right
+}
+
+func (i *Interpreter) VisitAssignExpression(ae *AssignExpression) interface{} {
+	value := i.evaluate(ae.Value)
+	i.Environment.Assign(ae.Name.Lexeme,value)
+	return value
 }
 
 func (i *Interpreter) isTruthy(value interface{}) bool {
