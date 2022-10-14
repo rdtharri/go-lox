@@ -23,7 +23,7 @@ func (p *Parser) expression() Expression {
 }
 
 func (p *Parser) assignment() Expression {
-	expr := p.equality()
+	expr := p.or()
 
 	if p.match(EQUAL) {
 		equals := p.previous()
@@ -31,12 +31,40 @@ func (p *Parser) assignment() Expression {
 
 		if varExp, ok := expr.(*VarExpression); ok {
 			return &AssignExpression{
-				Name: varExp.Name,
+				Name:  varExp.Name,
 				Value: value,
 			}
 		}
 
 		p.error(equals, "Invalid assignment target")
+	}
+
+	return expr
+}
+
+func (p *Parser) or() Expression {
+	expr := p.and()
+
+	for p.match(OR) {
+		expr = &LogicalExpression{
+			Left:     expr,
+			Right:    p.and(),
+			Operator: p.previous(),
+		}
+	}
+
+	return expr
+}
+
+func (p *Parser) and() Expression {
+	expr := p.equality()
+
+	for p.match(AND) {
+		expr = &LogicalExpression{
+			Left:     expr,
+			Right:    p.equality(),
+			Operator: p.previous(),
+		}
 	}
 
 	return expr
@@ -228,7 +256,7 @@ func (p *Parser) varDeclaration() Statement {
 }
 
 func (p *Parser) block() []Statement {
-	statements := make([]Statement,0)
+	statements := make([]Statement, 0)
 
 	for !p.check(RIGHT_BRACE) && !p.isAtEnd() {
 		statements = append(
@@ -242,6 +270,9 @@ func (p *Parser) block() []Statement {
 }
 
 func (p *Parser) statement() Statement {
+	if p.match(IF) {
+		return p.ifStatement()
+	}
 	if p.match(PRINT) {
 		return p.printStatement()
 	}
@@ -251,6 +282,24 @@ func (p *Parser) statement() Statement {
 		}
 	}
 	return p.expressionStatement()
+}
+
+func (p *Parser) ifStatement() Statement {
+	p.consume(LEFT_PAREN, "Expect '(' after 'if'.")
+	condition := p.expression()
+	p.consume(RIGHT_PAREN, "Expect ')' after if condition.")
+
+	thenBranch := p.statement()
+	var elseBranch Statement
+	if p.match(ELSE) {
+		elseBranch = p.statement()
+	}
+
+	return &IfStatement{
+		Condition:  condition,
+		ThenBranch: thenBranch,
+		ElseBranch: elseBranch,
+	}
 }
 
 func (p *Parser) printStatement() Statement {

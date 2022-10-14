@@ -4,7 +4,7 @@ import (
 	"fmt"
 )
 
-type Interpreter struct{
+type Interpreter struct {
 	Environment *Environment
 }
 
@@ -32,7 +32,7 @@ func (i *Interpreter) execute(stmt Statement) {
 func (i *Interpreter) executeBlock(statements []Statement, env *Environment) {
 	previous := i.Environment
 	defer func() {
-		if r:= recover(); r != nil {
+		if r := recover(); r != nil {
 			fmt.Println(r)
 		}
 		i.Environment = previous
@@ -58,6 +58,14 @@ func (i *Interpreter) VisitVarStatement(vs *VarStatement) {
 	i.Environment.Define(vs.Name.Lexeme, value)
 }
 
+func (i *Interpreter) VisitIfStatement(is *IfStatement) {
+	if i.isTruthy(i.evaluate(is.Condition)) {
+		i.execute(is.ThenBranch)
+	} else if is.ElseBranch != nil {
+		i.execute(is.ElseBranch)
+	}
+}
+
 func (i *Interpreter) VisitPrintStatement(ps *PrintStatement) {
 	value := i.evaluate(ps.Expression)
 	fmt.Println(value)
@@ -79,7 +87,7 @@ func (i *Interpreter) VisitBinaryExpression(be *BinaryExpression) interface{} {
 	left := i.evaluate(be.Left)
 	right := i.evaluate(be.Right)
 
-	validateNum := func() (float64,float64) {
+	validateNum := func() (float64, float64) {
 		return validateOperands[float64](
 			be.Operator.Type,
 			left,
@@ -104,14 +112,13 @@ func (i *Interpreter) VisitBinaryExpression(be *BinaryExpression) interface{} {
 			return leftString + rightString
 		}
 
-
 		leftNum, leftOk := left.(float64)
 		rightNum, rightOk := right.(float64)
 		if leftOk && rightOk {
 			return leftNum + rightNum
 		}
 
-		panic(fmt.Errorf("invalid operands for '%v': %v, %v",be.Operator.Type,left, right))
+		panic(fmt.Errorf("invalid operands for '%v': %v, %v", be.Operator.Type, left, right))
 	case GREATER:
 		leftVal, rightVal := validateNum()
 		return leftVal > rightVal
@@ -147,7 +154,7 @@ func (i *Interpreter) VisitUnaryExpression(ue *UnaryExpression) interface{} {
 	case MINUS:
 		value, ok := right.(float64)
 		if !ok {
-			panic(fmt.Errorf("invalid operand for '%v': %v",MINUS,right))
+			panic(fmt.Errorf("invalid operand for '%v': %v", MINUS, right))
 		}
 		return -value
 	case BANG:
@@ -159,8 +166,22 @@ func (i *Interpreter) VisitUnaryExpression(ue *UnaryExpression) interface{} {
 
 func (i *Interpreter) VisitAssignExpression(ae *AssignExpression) interface{} {
 	value := i.evaluate(ae.Value)
-	i.Environment.Assign(ae.Name.Lexeme,value)
+	i.Environment.Assign(ae.Name.Lexeme, value)
 	return value
+}
+
+func (i *Interpreter) VisitLogicalExpression(le *LogicalExpression) interface{} {
+	left := i.evaluate(le.Left)
+	if le.Operator.Type == OR {
+		if i.isTruthy(left) {
+			return left
+		}
+	} else {
+		if !i.isTruthy(left) {
+			return left
+		}
+	}
+	return i.evaluate(le.Right)
 }
 
 func (i *Interpreter) isTruthy(value interface{}) bool {
@@ -184,12 +205,11 @@ func (i *Interpreter) isEqual(left interface{}, right interface{}) bool {
 	return left == right
 }
 
-func validateOperands[T string|float64|bool](operator TokenType, left interface{}, right interface{}) (T, T) {
+func validateOperands[T string | float64 | bool](operator TokenType, left interface{}, right interface{}) (T, T) {
 	leftVal, leftOk := left.(T)
 	rightVal, rightOk := right.(T)
 	if !leftOk || !rightOk {
-		panic(fmt.Errorf("invalid operands for '%v': %v, %v",operator,left, right))
+		panic(fmt.Errorf("invalid operands for '%v': %v, %v", operator, left, right))
 	}
 	return leftVal, rightVal
 }
-

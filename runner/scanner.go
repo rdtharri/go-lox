@@ -200,7 +200,11 @@ func (s *Scanner) identifier() {
 		ttype = IDENTIFIER
 	}
 
-	s.addNullToken(ttype)
+	if ttype == TRUE || ttype == FALSE {
+		s.addValueToken(ttype,lexeme)
+	} else {
+	    s.addNullToken(ttype)
+	}
 }
 
 func (s *Scanner) addNullToken(ttype TokenType) {
@@ -232,6 +236,10 @@ func (s *Scanner) addValueToken(ttype TokenType, value string) {
 		newToken.Value = numVal
 	case STRING:
 		newToken.Value = value
+	case TRUE:
+		newToken.Value = true
+	case FALSE:
+		newToken.Value = false
 	}
 
 	s.appendToken(newToken)

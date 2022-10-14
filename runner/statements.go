@@ -5,6 +5,7 @@ type StatementVisitor interface {
 	VisitPrintStatement(*PrintStatement)
 	VisitVarStatement(*VarStatement)
 	VisitBlockStatement(*BlockStatement)
+	VisitIfStatement(*IfStatement)
 }
 
 type Statement interface {
@@ -28,7 +29,7 @@ func (ps *PrintStatement) Accept(v StatementVisitor) {
 }
 
 type VarStatement struct {
-	Name Token
+	Name        Token
 	Initializer Expression
 }
 
@@ -42,4 +43,14 @@ type BlockStatement struct {
 
 func (bs *BlockStatement) Accept(v StatementVisitor) {
 	v.VisitBlockStatement(bs)
+}
+
+type IfStatement struct {
+	Condition  Expression
+	ThenBranch Statement
+	ElseBranch Statement
+}
+
+func (is *IfStatement) Accept(v StatementVisitor) {
+	v.VisitIfStatement(is)
 }

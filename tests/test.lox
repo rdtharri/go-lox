@@ -1,31 +1,16 @@
 var a = 5;
-var b = (a * 2);
-print a + b;
 
-b = 500;
-print b;
-
-a = 3;
-b = 5;
-print "A outside block:";
-print a;
-print "B outside block:";
-print b;
-{
-    print "A inside block:";
-    print a;
-
-    var b = "masked!";
-    print "B inside block:";
-    print b;
-
-    a = "testing";
-    print "A after change inside block:";
-    print a;
+if (a > 200) {
+   print "A is big";
+} else {
+   print "A isn't big";
 }
 
-print "A outside block again:";
-print a;
+var test = true;
+print test;
 
-print "B outside block again:";
-print b;
+if (true and true) {
+   print "Truth!";
+} else {
+   print "False!";
+}
